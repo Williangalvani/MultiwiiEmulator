@@ -1,0 +1,2 @@
+This is a badly done program to mimic a Multiwii flight controller,
+However the communication is not well done, it doesnt read any answers, just spits messages when receives a '<', which is part of the protocol header
