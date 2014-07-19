@@ -1,5 +1,7 @@
 __author__ = 'Will'
 
+SERIALPORT = "COM19"
+
 import serial
 import os
 import time
@@ -50,6 +52,8 @@ MSP_DEBUGMSG = 253  # out message         debug string buffer
 MSP_DEBUG = 254  # out message         debug1,debug2,debug3,debug4
 
 
+print "main"
+
 def list_serial_ports():
     # Windows
     if os.name == 'nt':
@@ -68,7 +72,7 @@ def list_serial_ports():
         return [port[0] for port in list_ports.comports()]
 
 
-print list_serial_ports()
+#print list_serial_ports()
 
 byte_buffer = bytearray()
 
@@ -261,48 +265,40 @@ def send_motor(forca_esquerdo,forca_direito):
     port.write(str(byte_buffer))
 
 
-port = serial.Serial(list_serial_ports()[0], baudrate=460800, timeout=1)
+port = serial.Serial(SERIALPORT, baudrate=460800, timeout=1)
 angle = 0
 distance = 0
+print "connected to port " , port
+
+def waitForRequest():
+    time.sleep(0.001)
 
 while True:
     distance += 1
-    while port.read() != "<":
-        pass
+    waitForRequest()
     distance += 1
     send_gps(23 + distance / 100000, 24, speed=distance * 10, alt=distance, fix=1)
-    while port.read() != "<":
-        pass
+    waitForRequest()
     send_comp_gps(distance, (distance % 360) - 180)
-    while port.read() != "<":
-        pass
+    waitForRequest()
     angle += 1
     send_attitude(x=distance, y=distance % 90 - 45)
-    while port.read() != "<":
-        pass
+    waitForRequest()
     send_analog(rssi=distance)
-    while port.read() != "<":
-        pass
+    waitForRequest()
     send_altitude(-distance, vario=333)
-    while port.read() != "<":
-        pass
+    waitForRequest()
     send_status()
-    while port.read() != "<":
-        pass
+    waitForRequest()
     send_rc([1900, 1900, 1500, 1100, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000])
-    while port.read() != "<":
-        pass
+    waitForRequest()
     send_bicopter_identifier()
-    while port.read() != "<":
-        pass
+    waitForRequest()
     send_motor_pins()
-    while port.read() != "<":
-        pass
+    waitForRequest()
     send_motor(distance % 20,12)
-    while port.read() != "<":
-        pass
+    waitForRequest()
     send_servos(1234,1235)
-    while port.read() != "<":
-        pass
+    waitForRequest()
     send_debug(1,2,3,4)
     print distance
