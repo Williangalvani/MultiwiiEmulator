@@ -1,11 +1,15 @@
 __author__ = 'Will'
 
-SERIALPORT = "COM19"
-
 import serial
 import os
 import time
 from random import randint, randrange
+
+global SERIALPORT
+if os.name == "posix":
+    SERIALPORT = "/dev/ttyUSB10"
+else:
+    SERIALPORT = "COM5"
 
 MSP_IDENT = 100  # out message         multitype + multiwii version + protocol version + capability variable
 MSP_STATUS = 101  # out message         cycletime & errors_count & sensor present & box activation & current setting number
