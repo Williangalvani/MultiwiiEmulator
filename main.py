@@ -306,4 +306,3 @@ while True:
     waitForRequest()
     send_debug(1,2,3,4)
     print distance
-    print(os.name)
