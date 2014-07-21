@@ -174,6 +174,19 @@ def send_altitude(alt=123, vario=123):
     port.write(str(byte_buffer))
 
 
+def send_raw_imu(acc=[],gyr=[],mag=[]):
+    headSerialReply(18, MSP_RAW_IMU)
+    for x in xrange(0,3):
+        serialize16(acc[x])
+    for x in xrange(0,3):
+        serialize16(gyr[x])
+    for x in xrange(0,3):
+        serialize16(mag[x])
+    tailSerialReply()
+    port.write(str(byte_buffer))
+
+
+
 def send_status(stable=0, baro=0, mag=0):
     headSerialReply(11, MSP_STATUS)
     serialize16(0)
@@ -308,4 +321,10 @@ while True:
     send_debug(1,2,3,4)
     waitForRequest()
     send_pid()
+    waitForRequest()
+    acc=[12,13,14]
+    gyr=[20,30,40]
+    mag=[200,300,600]
+    send_raw_imu(acc,gyr,mag)
+    waitForRequest()
     print distance
