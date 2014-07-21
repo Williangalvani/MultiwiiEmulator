@@ -47,11 +47,8 @@ MSP_SELECT_SETTING = 210  # in message          Select Setting Number (0-2)
 MSP_SET_HEAD = 211  # in message          define a new heading hold direction
 MSP_SET_SERVO_CONF = 212  # in message          Servo settings
 MSP_SET_MOTOR = 214  # in message          PropBalance function
-
 MSP_BIND = 240  # in message          no param
-
 MSP_EEPROM_WRITE = 250  # in message          no param
-
 MSP_DEBUGMSG = 253  # out message         debug string buffer
 MSP_DEBUG = 254  # out message         debug1,debug2,debug3,debug4
 
@@ -255,8 +252,8 @@ def send_motor_pins():
 
 def send_motor(forca_esquerdo,forca_direito):
     headSerialResponse(16, MSP_MOTOR)
-    serialize16(forca_esquerdo*100);
-    serialize16(forca_direito*100);
+    serialize16(forca_esquerdo);
+    serialize16(forca_direito);
     serialize16(1300);
     serialize16(1300);
 
@@ -286,11 +283,11 @@ while True:
     send_comp_gps(distance, (distance % 360) - 180)
     waitForRequest()
     angle += 1
-    send_attitude(x=distance, y=distance % 90 - 45)
+    send_attitude(x=distance % 180 - 90, y=int(distance % 90 * 0.23 - 45),z= int(distance%360 *0.123))
     waitForRequest()
     send_analog(rssi=distance)
     waitForRequest()
-    send_altitude(-distance, vario=333)
+    send_altitude(-distance % 1000, vario=333)
     waitForRequest()
     send_status()
     waitForRequest()
@@ -300,7 +297,7 @@ while True:
     waitForRequest()
     send_motor_pins()
     waitForRequest()
-    send_motor(distance % 20,12)
+    send_motor(distance % 255,100)
     waitForRequest()
     send_servos(1234,1235)
     waitForRequest()
