@@ -238,17 +238,29 @@ def send_servos(servo_esquerdo,servo_direito):
     tailSerialReply();
     port.write(str(byte_buffer))
 
+def send_raw_imu(gyro, acc, mag):
+    headSerialResponse(18, MSP_RAW_IMU)
+    for i in range(3):
+        serialize16(gyro[i])
+    for i in range(3):
+        serialize16(acc[i])
+    for i in range(3):
+        serialize16(mag[i])
+    tailSerialReply()
+    port.write(str(byte_buffer))
+
+
 def send_motor_pins():
     headSerialResponse(8, MSP_MOTOR_PINS)
-    serialize8(1);
-    serialize8(2);
-    serialize8(0);
-    serialize8(0);
+    serialize8(1)
+    serialize8(2)
+    serialize8(0)
+    serialize8(0)
 
-    serialize8(0);
-    serialize8(0);
-    serialize8(0);
-    serialize8(0);
+    serialize8(0)
+    serialize8(0)
+    serialize8(0)
+    serialize8(0)
 
     tailSerialReply();
     port.write(str(byte_buffer))
@@ -286,11 +298,11 @@ while True:
     send_comp_gps(distance, (distance % 360) - 180)
     waitForRequest()
     angle += 1
-    send_attitude(x=distance % 180 - 90, y=int(distance % 90 * 0.23 - 45),z= int(distance%360 *0.123))
+    send_attitude(x=distance, y=distance % 90 - 45)
     waitForRequest()
     send_analog(rssi=distance)
     waitForRequest()
-    send_altitude(-distance % 1000, vario=333)
+    send_altitude(-distance, vario=333)
     waitForRequest()
     send_status()
     waitForRequest()
@@ -300,9 +312,11 @@ while True:
     waitForRequest()
     send_motor_pins()
     waitForRequest()
-    send_motor(distance % 255,100)
+    send_motor(distance % 20,12)
     waitForRequest()
-    send_servos(distance % 1000 -500 ,distance % 1000 -500 )
+    send_servos(1234,1235)
     waitForRequest()
     send_debug(1,2,3,4)
+    waitForRequest()
+    send_raw_imu([1,2,3],[4,5,6],[7,8,9])
     print distance
