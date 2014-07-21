@@ -299,7 +299,7 @@ while True:
     waitForRequest()
     send_motor(distance % 255,100)
     waitForRequest()
-    send_servos(1234,1235)
+    send_servos(distance % 1000 -500 ,distance % 1000 -500 )
     waitForRequest()
     send_debug(1,2,3,4)
     print distance
