@@ -175,11 +175,12 @@ def send_altitude(alt=123, vario=123):
 
 
 def send_status(stable=0, baro=0, mag=0):
-    headSerialReply(10, MSP_STATUS)
+    headSerialReply(11, MSP_STATUS)
     serialize16(0)
-    serialize16(0)
+    serialize16(0)  
     serialize16(0)
     serialize32(0)
+    serialize8(0)
     tailSerialReply()
     port.write(str(byte_buffer))
 
@@ -247,8 +248,8 @@ def send_motor_pins():
 
     serialize8(0);
     serialize8(0);
-    serialize8(0);
-    serialize8(0);
+    serialize8(2);
+    serialize8(1);
 
     tailSerialReply();
     port.write(str(byte_buffer))
@@ -275,7 +276,7 @@ distance = 0
 print "connected to port " , port
 
 def waitForRequest():
-    time.sleep(0.001)
+    time.sleep(0.01)
 
 while True:
     distance += 1
@@ -286,23 +287,25 @@ while True:
     send_comp_gps(distance, (distance % 360) - 180)
     waitForRequest()
     angle += 1
-    send_attitude(x=distance, y=distance % 90 - 45)
+    send_attitude(distance, distance,distance)
     waitForRequest()
     send_analog(rssi=distance)
     waitForRequest()
-    send_altitude(-distance, vario=333)
+    send_altitude(distance, vario=333)
     waitForRequest()
     send_status()
     waitForRequest()
-    send_rc([1900, 1900, 1500, 1100, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000])
+    send_rc([1900, 1900, 1500, 1100, 1300, 1400, 1500, 1600, 1700, 1800, 1900, 1009, 1050])
     waitForRequest()
     send_bicopter_identifier()
     waitForRequest()
     send_motor_pins()
     waitForRequest()
-    send_motor(distance % 20,12)
+    send_motor(15,12)
     waitForRequest()
     send_servos(1234,1235)
     waitForRequest()
     send_debug(1,2,3,4)
+    waitForRequest()
+    send_pid()
     print distance
