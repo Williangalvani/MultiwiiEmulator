@@ -7,7 +7,7 @@ from random import randint, randrange
 
 global SERIALPORT
 if os.name == "posix":
-    SERIALPORT = "/dev/ttyUSB10"
+    SERIALPORT = "/dev/ttyVirtual1"
 else:
     SERIALPORT = "COM5"
 
