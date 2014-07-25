@@ -3,6 +3,7 @@ __author__ = 'Will'
 import serial
 import os
 import time
+import struct
 from random import randint, randrange
 
 global SERIALPORT
@@ -56,6 +57,17 @@ MSP_DEBUGMSG = 253  # out message         debug string buffer
 MSP_DEBUG = 254  # out message         debug1,debug2,debug3,debug4
 
 
+
+
+#############################################################
+#
+MSP_ESCDATA                 =99
+MSP_CONTROLDATAOUT          =98
+MSP_CONTROLDATAIN           =97
+#
+#############################################################
+
+
 print "main"
 
 def list_serial_ports():
@@ -100,6 +112,11 @@ def serialize32(a):
     serialize8((a >> 16) & 0xFF);
     serialize8((a >> 24) & 0xFF);
 
+def serializeFloat(a):
+    b=struct.pack('<f', a)
+    for x in xrange(0,4):
+        serialize8(b[x])
+
 
 checksum = [0, 0, 0, 0]
 
@@ -137,6 +154,38 @@ def send_gps(lat=0, lon=0, numsats=5, alt=0, speed=0, fix=1):
     tailSerialReply()
     port.write(str(byte_buffer))
 
+def sendControldatain(rpy=[0,0,0],drpy=[0,0,0],position=[0,0,0],velocity=[0,0,0]):
+    headSerialReply(48, MSP_CONTROLDATAIN)
+    for x in xrange(0,3):
+        serializeFloat(rpy[x])
+    for x in xrange(0,3):
+        serializeFloat(drpy[x])
+    for x in xrange(0,3):
+        serializeFloat(position[x])
+    for x in xrange(0,3):
+        serializeFloat(velocity[x])
+    tailSerialReply()
+    port.write(str(byte_buffer))
+
+def sendControldataout(servo=[0,0],esc=[0,0,0,0]):
+    headSerialReply(24, MSP_CONTROLDATAOUT)
+    serializeFloat(servo[0])
+    serializeFloat(esc[0])
+    serializeFloat(esc[1])
+    serializeFloat(servo[1])
+    serializeFloat(esc[2])
+    serializeFloat(esc[3])
+    tailSerialReply()
+    port.write(str(byte_buffer))
+
+def sendEscdata(rpm=[0,0],current=[0,0],voltage=[0,0]):
+    headSerialReply(20, MSP_ESCDATA)
+    for x in xrange(0,2):
+        serialize16(rpm[x])
+        serializeFloat(current[x])
+        serializeFloat(voltage[x])
+    tailSerialReply()
+    port.write(str(byte_buffer))
 
 def send_comp_gps(distance, direction):
     headSerialReply(5, MSP_COMP_GPS);
@@ -267,8 +316,8 @@ def send_motor_pins():
 
 def send_motor(forca_esquerdo,forca_direito):
     headSerialResponse(16, MSP_MOTOR)
-    serialize16(forca_esquerdo*100);
-    serialize16(forca_direito*100);
+    serialize16(forca_esquerdo);
+    serialize16(forca_direito);
     serialize16(1300);
     serialize16(1300);
 
@@ -298,11 +347,13 @@ while True:
     send_comp_gps(distance, (distance % 360) - 180)
     waitForRequest()
     angle += 1
-    send_attitude(x=distance, y=distance % 90 - 45)
+    send_attitude(angle,angle,angle)
+    if(angle>180):
+        angle=-180
     waitForRequest()
     send_analog(rssi=distance)
     waitForRequest()
-    send_altitude(-distance, vario=333)
+    send_altitude(666, 333)
     waitForRequest()
     send_status()
     waitForRequest()
@@ -312,11 +363,18 @@ while True:
     waitForRequest()
     send_motor_pins()
     waitForRequest()
-    send_motor(distance % 20,12)
+    send_motor(12,12)
     waitForRequest()
-    send_servos(1234,1235)
+    send_servos(5,-5)
     waitForRequest()
     send_debug(1,2,3,4)
     waitForRequest()
     send_raw_imu([1,2,3],[4,5,6],[7,8,9])
+    waitForRequest()
+    sendControldatain(rpy=[1.1,2.2,3.3],drpy=[4.4,5.5,6.6],position=[7.7,8.8,9.9],velocity=[10.10,11.11,12.12])
+    waitForRequest()
+    sendControldataout(servo=[128,137],esc=[1.1,2.2,3.3,4.4])
+    waitForRequest()
+    sendEscdata(rpm=[123,321],current=[1.1,2.2],voltage=[3.3,4.4])
+    waitForRequest()
     print distance
