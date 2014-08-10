@@ -329,6 +329,15 @@ def send_motor(forca_esquerdo,forca_direito):
     tailSerialReply();
     port.write(str(byte_buffer))
 
+#provant_msg
+def send_rc_normalize(channels):
+    MSP_RCNORMALIZE             =96
+    headSerialReply(12 * 2, MSP_RCNORMALIZE)
+    for i in range(12):
+        serialize16(channels[i])
+    tailSerialReply()
+    port.write(str(byte_buffer))
+
 
 port = serial.Serial(SERIALPORT, baudrate=460800, timeout=1)
 angle = 0
@@ -338,7 +347,11 @@ print "connected to port " , port
 def waitForRequest():
     time.sleep(0.001)
 
+until100=0
 while True:
+    if until100>99:
+        until100=0
+    until100 += 1
     distance += 1
     waitForRequest()
     distance += 1
@@ -357,7 +370,9 @@ while True:
     waitForRequest()
     send_status()
     waitForRequest()
-    send_rc([1900, 1900, 1500, 1100, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000])
+    send_rc([600,700,1000,1700,1500,800,300,400,600,700,100,400,300])
+    waitForRequest()
+    send_rc_normalize([100-2*until100, 2*until100-100, 100-2*until100, 2*until100-100, until100, 100-until100, until100, 65, 33, 100, 89, 70])         #provant msg
     waitForRequest()
     send_bicopter_identifier()
     waitForRequest()
