@@ -7,8 +7,10 @@ import struct
 from random import randint, randrange
 
 global SERIALPORT
+global SERIALPORT2
 if os.name == "posix":
     SERIALPORT = "/dev/ttyVirtual1"
+    SERIALPORT2 = "/dev/ttyVirtual2"
 else:
     SERIALPORT = "COM5"
 
@@ -340,6 +342,7 @@ def send_rc_normalize(channels):
 
 
 port = serial.Serial(SERIALPORT, baudrate=460800, timeout=1)
+port2 = serial.Serial(SERIALPORT2, baudrate=460800, timeout=1)
 angle = 0
 distance = 0
 print "connected to port " , port
@@ -348,6 +351,7 @@ def waitForRequest():
     time.sleep(0.001)
 
 until100=0
+lastSerialAvailable=0
 while True:
     if until100>99:
         until100=0
@@ -393,3 +397,6 @@ while True:
     sendEscdata(rpm=[123,321],current=[1.1,2.2],voltage=[3.3,4.4])
     waitForRequest()
     print distance
+    while(port2.inWaiting()>1024):
+        waitForRequest()
+
