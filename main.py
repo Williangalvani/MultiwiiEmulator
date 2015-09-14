@@ -1,6 +1,7 @@
 __author__ = 'Will'
 
 import serial
+from threading import Thread
 import os
 import time
 import struct
@@ -29,7 +30,7 @@ MSP_RC_TUNING = 111  # out message         rc rate, rc expo, rollpitch rate, yaw
 MSP_PID = 112  # out message         P I D coeff (9 are used currently)
 MSP_BOX = 113  # out message         BOX setup (number is dependant of your setup)
 MSP_MISC = 114  # out message         powermeter trig
-MSP_MOTOR_PINS = 115  # out message         which pins are in use for motors & servos, for GUI
+MSP_MOTOR_PINS = 115  # out message         which pins are in use for motors & vos, for GUI
 MSP_BOXNAMES = 116  # out message         the aux switch names
 MSP_PIDNAMES = 117  # out message         the PID names
 MSP_WP = 118  # out message         get a WP, WP# is in the payload, returns (WP#, lat, lon, alt, flags) WP#0-home, WP#16-poshold
@@ -343,60 +344,134 @@ def send_rc_normalize(channels):
 
 port = serial.Serial(SERIALPORT, baudrate=460800, timeout=1)
 port2 = serial.Serial(SERIALPORT2, baudrate=460800, timeout=1)
-angle = 0
-distance = 0
 print "connected to port " , port
 
 def waitForRequest():
     time.sleep(0.001)
 
+global control
+global until100
+global lastSerialAvailable
+global angle
+global distance
+angle = 0
+distance = 0
 until100=0
 lastSerialAvailable=0
-while True:
-    if until100>99:
-        until100=0
-    until100 += 1
-    distance += 1
-    waitForRequest()
-    distance += 1
-    send_gps(23 + distance / 100000, 24, speed=distance * 10, alt=distance, fix=1)
-    waitForRequest()
-    send_comp_gps(distance, (distance % 360) - 180)
-    waitForRequest()
-    angle += 1
-    send_attitude(angle,angle,angle)
-    if(angle>180):
-        angle=-180
-    waitForRequest()
-    send_analog(rssi=distance)
-    waitForRequest()
-    send_altitude(666, 333)
-    waitForRequest()
-    send_status()
-    waitForRequest()
-    send_rc([600,700,1000,1700,1500,800,300,400,600,700,100,400,300])
-    waitForRequest()
-    send_rc_normalize([100-2*until100, 2*until100-100, 100-2*until100, 2*until100-100, until100, 100-until100, until100, 65, 33, 100, 89, 70])         #provant msg
-    waitForRequest()
-    send_bicopter_identifier()
-    waitForRequest()
-    send_motor_pins()
-    waitForRequest()
-    send_motor(12,12)
-    waitForRequest()
-    send_servos(5,-5)
-    waitForRequest()
-    send_debug(1,2,3,4)
-    waitForRequest()
-    send_raw_imu([1,2,3],[4,5,6],[7,8,9])
-    waitForRequest()
-    sendControldatain(rpy=[1.1,2.2,3.3],drpy=[4.4,5.5,6.6],position=[7.7,8.8,9.9],velocity=[10.10,11.11,12.12])
-    waitForRequest()
-    sendControldataout(servo=[128,137],esc=[1.1,2.2,3.3,4.4])
-    waitForRequest()
-    sendEscdata(rpm=[123,321],current=[1.1,2.2],voltage=[3.3,4.4])
-    waitForRequest()
-    print distance
-    while(port2.inWaiting()>1024):
-        waitForRequest()
+control = 's'
+#Testando possiveis Threads para a Multiwii
+def checkserial(a,b):
+	global control
+	while True:
+		take = port.read()
+		if (take == ''):
+			pass
+		else:
+			control = take
+		waitForRequest()
+def principal(c,d):
+	global control
+	global until100
+	global lastSerialAvailable
+	global angle
+	global distance
+	while True:
+		if (control == 'i'):
+			print "Start"
+			if until100>99:
+				until100=0
+			until100 += 1
+			distance += 1
+			waitForRequest()
+			distance += 1
+			send_gps(23 + distance / 100000, 24, speed=distance * 10, alt=distance, fix=1)
+			waitForRequest()
+			send_comp_gps(distance, (distance % 360) - 180)
+			waitForRequest()
+			angle += 1
+			send_attitude(angle,angle,angle)
+			if(angle>180):
+				angle=-180
+			waitForRequest()
+			send_analog(rssi=distance)
+			waitForRequest()
+			send_altitude(666, 333)
+			waitForRequest()
+			send_status()
+			waitForRequest()
+			send_rc([600,700,1000,1700,1500,800,300,400,600,700,100,400,300])
+			waitForRequest()
+			send_rc_normalize([100-2*until100, 2*until100-100, 100-2*until100, 2*until100-100, until100, 100-until100, until100, 65, 33, 100, 89, 70])         #provant msg
+			waitForRequest()
+			send_bicopter_identifier()
+			waitForRequest()
+			send_motor_pins()
+			waitForRequest()
+			send_motor(12,12)
+			waitForRequest()
+			send_servos(5,-5)
+			waitForRequest()
+			send_debug(1,2,3,4)
+			waitForRequest()
+			send_raw_imu([1,2,3],[4,5,6],[7,8,9])
+			waitForRequest()
+			sendControldatain(rpy=[1.1,2.2,3.3],drpy=[4.4,5.5,6.6],position=[7.7,8.8,9.9],velocity=[10.10,11.11,12.12])
+			waitForRequest()
+			sendControldataout(servo=[128,137],esc=[1.1,2.2,3.3,4.4])
+			waitForRequest()
+			sendEscdata(rpm=[123,321],current=[1.1,2.2],voltage=[3.3,4.4])
+			waitForRequest()
+			print distance
+			while(port2.inWaiting()>1024):
+				waitForRequest()
+		elif (control == 'r'):
+			print "RESET"
+			until100 = 0
+			distance = 0
+			angle = 0
+			send_gps()
+			waitForRequest()
+		    	sendControldatain()
+			waitForRequest()
+			sendControldataout()
+			waitForRequest()
+			sendEscdata()
+			waitForRequest()		
+			send_comp_gps(0,0)
+			waitForRequest()	
+			send_attitude()
+			waitForRequest()
+			send_analog()
+			waitForRequest()
+			send_altitude()
+			waitForRequest()
+			send_status()
+			waitForRequest()
+			send_rc([600,700,1000,1700,1500,800,300,400,600,700,100,400,300])
+			waitForRequest()
+			send_rc_normalize([600,700,1000,1700,1500,800,300,400,600,700,100,400,300])
+			waitForRequest()
+			send_bicopter_identifier()
+			waitForRequest()
+			send_motor_pins()
+			waitForRequest()
+			send_motor(12,12)
+			waitForRequest()
+			send_servos(5,-5)
+			waitForRequest()	
+			send_debug(1,2,3,4)
+			waitForRequest()	
+			send_raw_imu([1,2,3],[4,5,6],[7,8,9])
+			waitForRequest()
+			control = 'i'
+		elif (control == 's'):
+			print "STOP"
 
+		else:
+			pass
+			
+
+th1 = Thread(target=checkserial, args = ('',''))
+th2 = Thread(target=principal, args = ('',''))
+th1.start()
+th2.start()
