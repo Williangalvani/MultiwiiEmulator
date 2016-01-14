@@ -41,6 +41,8 @@ class ProvantSerial:
 	global checksum
 	checksum = [0, 0, 0, 0]
 	servo = 0
+	self.control = "s"
+	self.s = ""
 
 ##### ENCODING FUNCTIONS ###################################
 
@@ -262,6 +264,13 @@ class ProvantSerial:
 	self.serialize8(0)
 	self.serialize8(0)
 
+	self.tailSerialReply();
+	self.ser.write(str(byte_buffer))
+
+    def send_string(self, string):
+	self.headSerialResponse(len(string), MSP_STRING)
+	for i in range(len(string)):
+		self.serialize8(string[i])
 	self.tailSerialReply();
 	self.ser.write(str(byte_buffer))
 
@@ -548,6 +557,19 @@ class ProvantSerial:
                                              ('Rpm', 'Current', 'Voltage'))
                     self.window.lMotorRpm.setValue(self.escdata.rpm[0])
                     self.window.rMotorRpm.setValue(self.escdata.rpm[1])
+
+	if (self.who == MSP_STRING):
+		if self.checksum_matches():
+			self.s = ""
+			for i in range(len(self.L) -1):
+				self.s = self.s + self.L[i]
+			print self.s
+			if (self.s == "i") or (self.s == "r") or (self.s == "s"):
+				self.control = self.s
+			else:
+				pass
+			
+
 
         if (self.who == MSP_RCNORMALIZE):
             if self.checksum_matches():

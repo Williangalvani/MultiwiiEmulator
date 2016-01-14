@@ -104,7 +104,6 @@ com = ProvantSerial(window = None, serial_name=SERIALPORT, baudrate_value=460800
 def waitForRequest():
     time.sleep(0.001)
 
-global control
 global until100
 global lastSerialAvailable
 global angle
@@ -115,63 +114,127 @@ until100=0
 lastSerialAvailable=0
 #Testando possiveis Threads para a Multiwii
 def checkserial(a,b):
-	global control
 	while True:
 		com.update()
 
 def principal(c,d):
-	global control
 	global until100
 	global lastSerialAvailable
 	global angle
 	global distance
+	kStart = False
+	kStop = True
+	kReset = False 
 	while True:
-			if until100>99:
-				until100=0			
-			until100 += 1
-			distance += 1
-			waitForRequest()
-			distance += 1
-			com.send_gps(23 + distance / 100000, 24, speed=distance * 10, alt=distance, fix=1)
-			waitForRequest()
-			com.send_comp_gps(distance, (distance % 360) - 180)
-			waitForRequest()
-			angle += 1
-			com.send_attitude(angle,angle,angle)
-			if(angle>180):
-				angle=-180
-			waitForRequest()
-			com.send_analog(rssi=distance)
-			waitForRequest()
-			com.send_altitude(666, 333)
-			waitForRequest()
-			com.send_status()
-			waitForRequest()
-			com.send_rc([600,700,1000,1700,1500,800,300,400,600,700,100,400,300])
-			waitForRequest()
-			com.send_rc_normalize([100-2*until100, 2*until100-100, 100-2*until100, 2*until100-100, until100, 100-until100, until100, 65, 33, 100, 89, 70])         #provant msg
-			waitForRequest()
-			com.send_bicopter_identifier()
-			waitForRequest()
-			com.send_motor_pins()
-			waitForRequest()
-			com.send_motor(12,12)
-			waitForRequest()
-			com.send_servos(5,-5)
-			waitForRequest()
-			com.send_debug(1,2,3,4)
-			waitForRequest()
-			com.send_raw_imu([1,2,3],[4,5,6],[7,8,9])
-			waitForRequest()
-			com.sendControldatain(rpy=[1.1,2.2,3.3],drpy=[4.4,5.5,6.6],position=[7.7,8.8,9.9],velocity=[10.10,11.11,12.12])
-			waitForRequest()
-			com.sendControldataout(servo=[128,137],esc=[1.1,2.2,3.3,4.4])
-			waitForRequest()
-			com.sendEscdata(rpm=[123,321],current=[1.1,2.2],voltage=[3.3,4.4])
-			waitForRequest()
-			print distance
-			while(port2.inWaiting()>1024):
+		if com.control == "i":
+				if kStart == True:
+					print "Start"
+					kReset = True
+					kStop = True
+					kStart = False
+				if until100>99:
+					until100=0			
+				until100 += 1
+				distance += 1
 				waitForRequest()
+				distance += 1
+				com.send_gps(23 + distance / 100000, 24, speed=distance * 10, alt=distance, fix=1)
+				waitForRequest()
+				com.send_comp_gps(distance, (distance % 360) - 180)
+				waitForRequest()
+				angle += 1
+				com.send_attitude(angle,angle,angle)
+				if(angle>180):
+					angle=-180
+				waitForRequest()
+				com.send_analog(rssi=distance)
+				waitForRequest()
+				com.send_altitude(666, 333)
+				waitForRequest()
+				com.send_status()
+				waitForRequest()
+				com.send_rc([600,700,1000,1700,1500,800,300,400,600,700,100,400,300])
+				waitForRequest()
+				com.send_rc_normalize([100-2*until100, 2*until100-100, 100-2*until100, 2*until100-100, until100, 100-until100, until100, 65, 33, 100, 89, 70])         #provant msg
+				waitForRequest()
+				com.send_bicopter_identifier()
+				waitForRequest()
+				com.send_motor_pins()
+				waitForRequest()
+				com.send_motor(12,12)
+				waitForRequest()
+				com.send_servos(5,-5)
+				waitForRequest()
+				com.send_debug(1,2,3,4)
+				waitForRequest()
+				com.send_raw_imu([1,2,3],[4,5,6],[7,8,9])
+				waitForRequest()
+				com.sendControldatain(rpy=[1.1,2.2,3.3],drpy=[4.4,5.5,6.6],position=[7.7,8.8,9.9],velocity=[10.10,11.11,12.12])
+				waitForRequest()
+				com.sendControldataout(servo=[128,137],esc=[1.1,2.2,3.3,4.4])
+				waitForRequest()
+				com.sendEscdata(rpm=[123,321],current=[1.1,2.2],voltage=[3.3,4.4])
+				waitForRequest()
+				print distance
+				while(port2.inWaiting()>1024):
+					waitForRequest()
+		elif com.control == "r":
+				if kReset == True:
+					print "Reset"
+					kStart = True
+					kStop = True
+					kReset = False
+					angle = 0
+					distance = 0
+					until100=0
+					lastSerialAvailable=0
+					waitForRequest()
+					com.send_gps(0 , 24, speed=distance * 10, alt=distance, fix=1)
+					waitForRequest()
+					com.send_comp_gps(distance, (distance % 360) - 180)
+					waitForRequest()
+					com.send_attitude(angle,angle,angle)
+					if(angle>180):
+						angle=-180
+					waitForRequest()
+					com.send_analog(rssi=distance)
+					waitForRequest()
+					com.send_altitude(666, 333)
+					waitForRequest()
+					com.send_status()
+					waitForRequest()
+					com.send_rc([600,700,1000,1700,1500,800,300,400,600,700,100,400,300])
+					waitForRequest()
+					com.send_rc_normalize([100-2*until100, 2*until100-100, 100-2*until100, 2*until100-100, until100, 100-until100, until100, 65, 33, 100, 89, 70])         #provant msg
+					waitForRequest()
+					com.send_bicopter_identifier()
+					waitForRequest()
+					com.send_motor_pins()
+					waitForRequest()
+					com.send_motor(12,12)
+					waitForRequest()
+					com.send_servos(5,-5)
+					waitForRequest()
+					com.send_debug(1,2,3,4)
+					waitForRequest()
+					com.send_raw_imu([1,2,3],[4,5,6],[7,8,9])
+					waitForRequest()
+					com.sendControldatain(rpy=[1.1,2.2,3.3],drpy=[4.4,5.5,6.6],position=[7.7,8.8,9.9],velocity=[10.10,11.11,12.12])
+					waitForRequest()
+					com.sendControldataout(servo=[128,137],esc=[1.1,2.2,3.3,4.4])
+					waitForRequest()
+					com.sendEscdata(rpm=[123,321],current=[1.1,2.2],voltage=[3.3,4.4])
+					waitForRequest()
+					print distance
+					while(port2.inWaiting()>1024):
+						waitForRequest()
+		elif com.control == "s":
+				if kStop == True:
+					print "Stop"
+					kStart = True
+					kReset = True
+					kStop = False
+
 
 th1 = Thread(target=checkserial, args = ('',''))
 th2 = Thread(target=principal, args = ('',''))
