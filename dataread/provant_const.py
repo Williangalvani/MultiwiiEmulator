@@ -4,15 +4,25 @@ __author__ = 'Patrick'
 MSP_ESCDATA                 =99
 MSP_CONTROLDATAOUT          =98
 MSP_CONTROLDATAIN           =97
+MSP_CONTROLDATAREF          =95
 MSP_RCNORMALIZE             =96
 
 
+class Controldataref:
+	r_rpy					=[0]*3	#float[3]					
+	r_drpy					=[0]*3	#float[3]
+	r_position				=[0]*3	#float[3]
+	r_velocity				=[0]*3	#float[3]
+	r_servo					=[0]*2  #float[2]
+	r_dservo				=[0]*2  #float[2]
 
 class Controldatain:
-	rpy						=[0]*3	#float[3]					
+	rpy					=[0]*3	#float[3]					
 	drpy					=[0]*3	#float[3]
 	position				=[0]*3	#float[3]
 	velocity				=[0]*3	#float[3]
+	servo					=[0]*2  #float[2]
+	dservo					=[0]*2  #float[2]
 
 class Controldataout:
 	servoLeft				=0   	#float32

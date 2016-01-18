@@ -34,6 +34,7 @@ class ProvantSerial:
         self.motor = Motor()
         self.imu = RawIMU()
         self.controldatain = Controldatain()
+	self.controldataref = Controldataref()
         self.controldataout = Controldataout()
         self.escdata = Escdata()
         self.sampleCount=0
@@ -107,8 +108,8 @@ class ProvantSerial:
 	self.tailSerialReply()
 	self.ser.write(str(byte_buffer))
 
-    def sendControldatain(self,rpy=[0,0,0],drpy=[0,0,0],position=[0,0,0],velocity=[0,0,0]):
-	self.headSerialReply(48, MSP_CONTROLDATAIN)
+    def sendControldatain(self,rpy=[0,0,0],drpy=[0,0,0],position=[0,0,0],velocity=[0,0,0],servo=[0,0,0],dservo=[0,0,0]):
+	self.headSerialReply(64, MSP_CONTROLDATAIN)
 	for x in xrange(0,3):
 	    self.serializeFloat(rpy[x])
 	for x in xrange(0,3):
@@ -117,6 +118,27 @@ class ProvantSerial:
 	    self.serializeFloat(position[x])
 	for x in xrange(0,3):
 	    self.serializeFloat(velocity[x])
+	for x in xrange(0,2):
+	    self.serializeFloat(servo[x])
+	for x in xrange(0,2):
+	    self.serializeFloat(dservo[x])
+	self.tailSerialReply()
+	self.ser.write(str(byte_buffer))
+
+    def sendControldataref(self,r_rpy=[0,0,0],r_drpy=[0,0,0],r_position=[0,0,0],r_velocity=[0,0,0],r_servo=[0,0,0],r_dservo=[0,0,0]): ##Testeeee
+	self.headSerialReply(64, MSP_CONTROLDATAREF)
+	for x in xrange(0,3):
+	    self.serializeFloat(r_rpy[x])
+	for x in xrange(0,3):
+	    self.serializeFloat(r_drpy[x])
+	for x in xrange(0,3):
+	    self.serializeFloat(r_position[x])
+	for x in xrange(0,3):
+	    self.serializeFloat(r_velocity[x])
+	for x in xrange(0,2):
+	    self.serializeFloat(r_servo[x])
+	for x in xrange(0,2):
+	    self.serializeFloat(r_dservo[x])
 	self.tailSerialReply()
 	self.ser.write(str(byte_buffer))
 
@@ -195,6 +217,14 @@ class ProvantSerial:
 	self.tailSerialReply()
 	self.ser.write(str(byte_buffer))
 
+    def send_debug_float(self,f_debug1,f_debug2,f_debug3,f_debug4): #Teste!!!!
+	self.headSerialReply(8, MSP_DEBUG2)
+	self.serializeFloat(f_debug1)
+	self.serializeFloat(f_debug2)
+	self.serializeFloat(f_debug3)
+	self.serializeFloat(f_debug4)
+	self.tailSerialReply()
+	self.ser.write(str(byte_buffer))
 
     def send_rc(self, channels):
 	self.headSerialReply(12 * 2, MSP_RC)
@@ -516,6 +546,10 @@ class ProvantSerial:
                     self.controldatain.position[x-6]= self.decodeFloat(self.L[x*4:4+x*4])
                 for x in xrange(9, 12):
                     self.controldatain.velocity[x-9]= self.decodeFloat(self.L[x*4:4+x*4])
+		for x in xrange(12,14):
+		    self.controldatain.servo[x-12] = self.decodeFloat(self.L[x*4:4+x*4])
+		for x in xrange(14,16):
+		    self.controldatain.dservo[x-14] = self.decodeFloat(self.L[x*4:4+x*4])
                 if self.window:
                     data = self.controldatain
                     self.window.addArray("Data.rpy",
@@ -526,6 +560,38 @@ class ProvantSerial:
                                          data.position,)
                     self.window.addArray("Data.Velocity",
                                          data.velocity,)
+		    self.window.addArray("Data.servo", 
+                                         data.servo)
+		    self.window.addArray("Data.dservo",
+                                         data.dservo)
+        if (self.who == MSP_CONTROLDATAREF):
+            if self.checksum_matches():
+                for x in xrange(0, 3):
+                    self.controldataref.r_rpy[x]= self.decodeFloat(self.L[x*4:4+x*4])
+                for x in xrange(3, 6):
+                    self.controldataref.r_drpy[x-3]= self.decodeFloat(self.L[x*4:4+x*4])
+                for x in xrange(6, 9):
+                    self.controldataref.r_position[x-6]= self.decodeFloat(self.L[x*4:4+x*4])
+                for x in xrange(9, 12):
+                    self.controldataref.r_velocity[x-9]= self.decodeFloat(self.L[x*4:4+x*4])
+		for x in xrange(12,14):
+		    self.controldataref.r_servo[x-12] = self.decodeFloat(self.L[x*4:4+x*4])
+		for x in xrange(14,16):
+		    self.controldataref.r_dservo[x-14] = self.decodeFloat(self.L[x*4:4+x*4])
+                if self.window:
+                    dataref = self.controldataref
+                    self.window.addArray("Dataref.rpy",
+                                         dataref.r_rpy,)
+                    self.window.addArray("Dataref.drpy",
+                                         dataref.r_drpy,)
+                    self.window.addArray("Dataref.Position",
+                                         dataref.r_position,)
+                    self.window.addArray("Dataref.Velocity",
+                                         dataref.r_velocity,)
+		    self.window.addArray("Dataref.servo", 
+                                         dataref.r_servo)
+		    self.window.addArray("Dataref.dservo",
+                                         dataref.r_dservo)
 
         if (self.who == MSP_CONTROLDATAOUT):
             if self.checksum_matches():
@@ -615,6 +681,9 @@ if __name__ == '__main__':
         print("servo", provant.servo.servo)
         print("motor pins", provant.motor_pins.pin)
         print("motor", provant.motor.motor)
-        print("controldatain",provant.controldatain.rpy,provant.controldatain.drpy,provant.controldatain.position,provant.controldatain.velocity )
-        print("controldataout",provant.controldataout.servoLeft,provant.controldataout.escLeftNewtons,provant.controldataout.escLeftSpeed,provant.controldataout.servoRight,provant.controldataout.escRightNewtons,provant.controldataout.escRightSpeed)
+        print("controldatain",provant.controldatain.rpy,provant.controldatain.drpy,provant.controldatain.position,provant.controldatain.velocity,
+provant.controldatain.servo,provant.controldatain.dservo)
+	print("controldataref",provant.controldataref.r_rpy,provant.controldataref.r_drpy,provant.controldataref.r_position,provant.controldataref.r_velocity,                               provant.controldataref.r_servo, provant.controldataref.r_dservo )
+        print("controldataout",provant.controldataout.servoLeft,provant.controldataout.escLeftNewtons,provant.controldataout.escLeftSpeed,provant.controldataout.servoRight,
+provant.controldataout.escRightNewtons,provant.controldataout.escRightSpeed)
         print("escdata",provant.escdata.rpm,provant.escdata.current,provant.escdata.voltage)
