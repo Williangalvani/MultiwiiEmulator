@@ -37,6 +37,8 @@ class ProvantSerial:
 	self.controldataref = Controldataref()
         self.controldataout = Controldataout()
         self.escdata = Escdata()
+	self.carga = Carga()
+	self.status = Status()
         self.sampleCount=0
 	byte_buffer = bytearray()
 	global checksum
@@ -108,7 +110,7 @@ class ProvantSerial:
 	self.tailSerialReply()
 	self.ser.write(str(byte_buffer))
 
-    def sendControldatain(self,rpy=[0,0,0],drpy=[0,0,0],position=[0,0,0],velocity=[0,0,0],servo=[0,0,0],dservo=[0,0,0]):
+    def sendControldatain(self,rpy=[0,0,0],drpy=[0,0,0],position=[0,0,0],velocity=[0,0,0],servo=[0,0],dservo=[0,0]):
 	self.headSerialReply(64, MSP_CONTROLDATAIN)
 	for x in xrange(0,3):
 	    self.serializeFloat(rpy[x])
@@ -125,7 +127,7 @@ class ProvantSerial:
 	self.tailSerialReply()
 	self.ser.write(str(byte_buffer))
 
-    def sendControldataref(self,r_rpy=[0,0,0],r_drpy=[0,0,0],r_position=[0,0,0],r_velocity=[0,0,0],r_servo=[0,0,0],r_dservo=[0,0,0]): ##Testeeee
+    def sendControldataref(self,r_rpy=[0,0,0],r_drpy=[0,0,0],r_position=[0,0,0],r_velocity=[0,0,0],r_servo=[0,0],r_dservo=[0,0]): ##Testeeee
 	self.headSerialReply(64, MSP_CONTROLDATAREF)
 	for x in xrange(0,3):
 	    self.serializeFloat(r_rpy[x])
@@ -139,6 +141,17 @@ class ProvantSerial:
 	    self.serializeFloat(r_servo[x])
 	for x in xrange(0,2):
 	    self.serializeFloat(r_dservo[x])
+	self.tailSerialReply()
+	self.ser.write(str(byte_buffer))
+
+    def send_carga(self, x=[0], dx=[0], y=[0], dy=[0], z=[0], dz=[0]):
+	self.headSerialReply(24, MSP_CARGA)
+	self.serializeFloat(x)
+	self.serializeFloat(dx)
+	self.serializeFloat(y)
+	self.serializeFloat(dy)
+	self.serializeFloat(z)
+	self.serializeFloat(dz)
 	self.tailSerialReply()
 	self.ser.write(str(byte_buffer))
 
@@ -206,7 +219,15 @@ class ProvantSerial:
 	self.serialize32(0)
 	self.tailSerialReply()
 	self.ser.write(str(byte_buffer))
-
+    
+    def send_provant_status(self, sts):
+	self.headSerialReply(4, MSP_PROVANT_STATUS)	
+	self.serialize8(sts[0])
+	self.serialize8(sts[1])
+	self.serialize8(sts[2])
+	self.serialize8(sts[3])
+	self.tailSerialReply()
+	self.ser.write(str(byte_buffer))
 
     def send_debug(self, debug1, debug2, debug3,debug4):
 	self.headSerialReply(8, MSP_DEBUG)
@@ -218,7 +239,7 @@ class ProvantSerial:
 	self.ser.write(str(byte_buffer))
 
     def send_debug_float(self,f_debug1,f_debug2,f_debug3,f_debug4): #Teste!!!!
-	self.headSerialReply(8, MSP_DEBUG2)
+	self.headSerialReply(16, MSP_DEBUG2)
 	self.serializeFloat(f_debug1)
 	self.serializeFloat(f_debug2)
 	self.serializeFloat(f_debug3)
@@ -564,6 +585,7 @@ class ProvantSerial:
                                          data.servo)
 		    self.window.addArray("Data.dservo",
                                          data.dservo)
+
         if (self.who == MSP_CONTROLDATAREF):
             if self.checksum_matches():
                 for x in xrange(0, 3):
@@ -581,17 +603,39 @@ class ProvantSerial:
                 if self.window:
                     dataref = self.controldataref
                     self.window.addArray("Dataref.rpy",
-                                         dataref.r_rpy,)
+                                         dataref.r_rpy)
                     self.window.addArray("Dataref.drpy",
-                                         dataref.r_drpy,)
+                                         dataref.r_drpy)
                     self.window.addArray("Dataref.Position",
-                                         dataref.r_position,)
+                                         dataref.r_position)
                     self.window.addArray("Dataref.Velocity",
                                          dataref.r_velocity,)
 		    self.window.addArray("Dataref.servo", 
                                          dataref.r_servo)
 		    self.window.addArray("Dataref.dservo",
                                          dataref.r_dservo)
+
+	if (self.who == MSP_CARGA):
+	    if self.checksum_matches():
+		self.carga.x[0] = self.decodeFloat(self.L[0:4])
+		self.carga.dx[0] = self.decodeFloat(self.L[4:8])
+		self.carga.y[0] = self.decodeFloat(self.L[8:12])
+		self.carga.dy[0] = self.decodeFloat(self.L[12:16])
+		self.carga.z[0] = self.decodeFloat(self.L[16:20])
+		self.carga.dz[0] = self.decodeFloat(self.L[20:24])
+		if self.window:
+			data = self.carga
+			self.window.addArray("Carga.x", data.x)
+			self.window.addArray("Carga.dx", data.dx)
+			self.window.addArray("Carga.y", data.y)
+			self.window.addArray("Carga.dy", data.dy)
+			self.window.addArray("Carga.z", data.z)
+			self.window.addArray("Carga.dz", data.dz)
+
+	if (self.who == MSP_PROVANT_STATUS):
+		for i in range(len(self.L)-1):
+			self.status.msg.append(self.decode8(self.L[i]))
+			print self.status.msg
 
         if (self.who == MSP_CONTROLDATAOUT):
             if self.checksum_matches():
@@ -609,7 +653,6 @@ class ProvantSerial:
                     self.window.addArray("ActuatorsCommand.Right",
                                          (data.escRightNewtons, data.escRightSpeed, data.servoRight),
                                          ('Newtons', 'Speed', 'Servo'))
-
         if (self.who == MSP_ESCDATA):
             if self.checksum_matches():
                 for x in xrange(0, 2):

@@ -169,6 +169,7 @@ def principal(c,d):
 				waitForRequest()
 				com.send_raw_imu([1,2,3],[4,5,6],[7,8,9])
 				waitForRequest()
+				com.send_carga(20.20,21.21,22.22,23.23,24.24,25.25)
 				com.sendControldatain(rpy=[1.1,2.2,3.3],drpy=[4.4,5.5,6.6],position=[7.7,8.8,9.9],velocity=[10.10,11.11,12.12], servo = [13.13,14.14],dservo = [15.15,16.16])
 				com.sendControldataref(r_rpy=[1.1,2.2,3.3],r_drpy=[4.4,5.5,6.6],r_position=[7.7,8.8,9.9],r_velocity=[10.10,11.11,12.12], r_servo = [13.13,14.14],r_dservo = [15.15,16.16])
 				waitForRequest()
