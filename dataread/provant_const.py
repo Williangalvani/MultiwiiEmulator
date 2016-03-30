@@ -7,7 +7,7 @@ MSP_CONTROLDATAIN           =97
 MSP_CONTROLDATAREF          =95
 MSP_RCNORMALIZE             =96
 MSP_CARGA		    =94
-MSP_PROVANT_STATUS		    =93
+MSP_PROVANT_STATUS	    =93
 
 class Controldataref:
 	r_rpy					=[0]*3	#float[3]					

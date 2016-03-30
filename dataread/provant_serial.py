@@ -12,6 +12,7 @@ from array import *
 
 
 class ProvantSerial:
+## Declaracoes iniciais
     def __init__(self,window = None, serial_name='/dev/ttyVirtual2', baudrate_value=460800, debug_mode=False):
         ser = serial.Serial(serial_name, baudrate_value)
         ser.flush()
@@ -46,10 +47,9 @@ class ProvantSerial:
 	servo = 0
 	self.control = "s"
 	self.s = ""
-
+##
 ##### ENCODING FUNCTIONS ###################################
-
-
+##Como cada mensagem e codificada
     def serialize8(self, a):
 	global byte_buffer
 	global checksum
@@ -348,7 +348,9 @@ class ProvantSerial:
 	    self.serialize16(channels[i])
 	self.tailSerialReply()
 	self.ser.write(str(byte_buffer))
-###################################################################################################################3
+##
+
+##########################DECODING##############################
     def decodeFloat(self, data):
         return struct.unpack('<f', ''.join(data))[0]
 
@@ -404,7 +406,7 @@ class ProvantSerial:
         return self.sampleCount
 
 ###############  PROPER MESSAGE DECODING IS HERE ##################################
-
+ ##Como cada mensagem e decoficada e tratada
     def takeData(self):
         if (self.who == MSP_ATTITUDE):
             if self.checksum_matches():
@@ -702,6 +704,7 @@ class ProvantSerial:
                     else:
                         self.window.radioButton_2.setChecked(0)
                     self.window.dial.setValue(self.rcn.channel[4])
+##############
 
 if __name__ == '__main__':
     provant = ProvantSerial()

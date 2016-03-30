@@ -112,11 +112,13 @@ angle = 0
 distance = 0
 until100=0
 lastSerialAvailable=0
-#Testando possiveis Threads para a Multiwii
+#Thread que checa dados na serial
 def checkserial(a,b):
 	while True:
 		com.update()
+##
 
+#Thread que trabalha com os dados recebidos
 def principal(c,d):
 	global until100
 	global lastSerialAvailable
@@ -126,6 +128,7 @@ def principal(c,d):
 	kStop = True
 	kReset = False 
 	while True:
+		#Laco do estado Start
 		if com.control == "i":
 				if kStart == True:
 					print "Start"
@@ -180,6 +183,8 @@ def principal(c,d):
 				print distance
 				while(port2.inWaiting()>1024):
 					waitForRequest()
+		##
+		#Laco do estado Reset
 		elif com.control == "r":
 				if kReset == True:
 					print "Reset"
@@ -231,13 +236,16 @@ def principal(c,d):
 					print distance
 					while(port2.inWaiting()>1024):
 						waitForRequest()
+		##
+		#Laco do estado Stop
 		elif com.control == "s":
 				if kStop == True:
 					print "Stop"
 					kStart = True
 					kReset = True
 					kStop = False
-
+		##
+##
 
 th1 = Thread(target=checkserial, args = ('',''))
 th2 = Thread(target=principal, args = ('',''))
